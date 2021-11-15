@@ -1,19 +1,9 @@
-#git clone https://github.com/Universe-ML21/script_install_dlib.git
-#sudo chmod +x script_install_dlib/auto_dlib.sh
-#bash script_install_dlib/auto_dlib.sh
-
-#pip install cmake
-#pip install face-recognition
-
-#import sys
-#sys.path.append('/home/shivam/Downloads/lib/python3.6/site-packages')
-#sys.path.append('/home/shivam/Downloads/face-recognition/lib/python3.6/site-packages')
 import cv2 
 import face_recognition
 import pickle
 
-name=input("enter name")
-ref_id=input("enter id")
+name=input("Enter name: ")
+ref_id=input("Enter id: ")
 
 try:
 	f=open("ref_name.pkl","rb")
@@ -45,8 +35,6 @@ for i in range(5):
 	while True:
 	     
 		check, frame = webcam.read()
-		# print(check) #prints true as long as the webcam is running
-		# print(frame) #prints matrix values of each framecd 
 		cv2.imshow("Capturing", frame) # frame - 640x480
 		small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25) # 120x160
 		rgb_small_frame = small_frame[:, :, ::-1]
@@ -57,20 +45,12 @@ for i in range(5):
 			face_locations = face_recognition.face_locations(rgb_small_frame)
 			print(face_locations)
 			if face_locations != []:
-
-				# filename="photo.jpg"
-				# cv2.imwrite(filename=filename, img=frame)
-				# image = face_recognition.load_image_file(filename)
-				# image = Image.fromarray(frame)
-				# image = image.convert('RGB')
 				face_encoding = face_recognition.face_encodings(frame)[0]
 				if ref_id in embed_dictt:
 					embed_dictt[ref_id]+=[face_encoding]
 				else:
 					embed_dictt[ref_id]=[face_encoding]
 				webcam.release()
-				# img_new = cv2.imread('saved_img.jpg', cv2.IMREAD_GRAYSCALE)
-				# img_new = cv2.imshow("Captured Image", img_new)
 				cv2.waitKey(1)
 				cv2.destroyAllWindows()     
 				break
