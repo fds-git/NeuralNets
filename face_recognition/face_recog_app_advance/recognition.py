@@ -30,7 +30,6 @@ while True  :
 	rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
 	boxes, probs = face_recognizer.detector.detect(rgb_frame, landmarks=False)
-	print(probs)
 	boxes, probs = face_recognizer.box_filter(boxes, probs, PROB_TREASHOLD)
 	if boxes != []:
 		for box, prob in zip(boxes, probs):
