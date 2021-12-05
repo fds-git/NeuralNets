@@ -83,7 +83,7 @@ class MyFaceRecognizer(nn.Module):
 
 
     @staticmethod
-    def box_filter(boxes: List[List[float]], probs: List[float], prob_treashold: float = 0.9) -> list:
+    def box_filter(boxes: List[List[float]], probs: List[float], prob_treashold: float = 0.9) -> List[List]:
         '''Статический метод фильтрации релевантных ограничивающих прямоугольников boxes
         по порогу вероятности prob_treashold
         Входные параметры:
