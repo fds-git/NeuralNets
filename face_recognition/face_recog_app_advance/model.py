@@ -72,7 +72,7 @@ class MyFaceRecognizer(nn.Module):
         nearest_name: str - имя человека, которое соответствует face_embedding'''
 
         centroid_distances = torch.linalg.vector_norm((self.centroids - face_embedding), ord=2, dim=1)
-        #print(centroid_distances)
+        print(centroid_distances)
         idx_min = torch.argmin(centroid_distances).item()
         distance_min = torch.min(centroid_distances).item()
         if distance_min >= distance_treashold:
