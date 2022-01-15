@@ -1,3 +1,3 @@
-# semantic_segmentation
-# face_recognition
-# face_landmark
+- semantic_segmentation
+. face_recognition
+1. face_landmark
