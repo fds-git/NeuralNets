@@ -4,17 +4,18 @@ from PIL import Image
 import pandas as pd
 import numpy as np
 import torch
+import cv2
 
 class CustomDatasetForTrain(Dataset):
     '''Класс для создания тренировочных и валидационных датасетов'''
+    
     def __init__(self, data_info: pd.DataFrame, device: str, transform: object, skip_mask: bool=False):
         '''Входные параметры:
         data_info: pd.DataFrame - датафрейм с адресами изображений и масок
         device: str - имя устройства, на котором будут обрабатываться данные
-        transform: object - список трансформации, которым будут подвергнуты изображения и маски
-        skip_mask: bool - флаг, нужно ли генерировать исходную маску (без изменения размерности)
-        Возвращаемые значения:
-        объект класса CustomDatasetForTrain'''
+        transform: object - список преобразований, которым будут подвергнуты изображения и маски
+        skip_mask: bool - флаг, нужно ли генерировать исходную маску (без изменения размерности)'''
+        
         # Подаем подготовленный датафрейм
         self.data_info = data_info
         # Разделяем датафрейм на rgb картинки 
@@ -30,14 +31,16 @@ class CustomDatasetForTrain(Dataset):
         # Сохраняем преобразования данных
         self.transform = transform
 
+        
     def __getitem__(self, index: int):
         '''Входные параметры:
-        img: int - индекс для обращения к элементам датафрейма data_info
+        index: int - индекс для обращения к элементам датафрейма data_info
         Возвращаемые значения:
-        img: torch.Tensor - тензорное представление изображения с размерностью out_shape
-        mask_small: torch.Tensor - тензорное представление маски с исходной размерностью
-        mask: torch.Tensor - тензорное представление изображения с размерностью out_shape 
-        (возвращается если значение skip_mask равно True)'''
+        tr_image: torch.Tensor - тензорное представление изображения
+        tr_mask: torch.Tensor - тензорное представление маски
+        mask: torch.Tensor - тензорное представление маски без преобразований
+        (возвращается если значение skip_mask равно True - необходимо при валидации)'''
+        
         image = cv2.imread(self.image_arr[index])
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype('float')/255.0
         
@@ -51,7 +54,6 @@ class CustomDatasetForTrain(Dataset):
         
         tr_image = tr_image.to(self.device).float()
         tr_mask = tr_mask.to(self.device).float().unsqueeze(0)
-
         
         # Если необходима исходная маска, то дополнительно возвращаем ее
         if self.skip_mask == True:
@@ -60,19 +62,22 @@ class CustomDatasetForTrain(Dataset):
         else:
             return (tr_image, tr_mask)
 
+        
     def __len__(self):
         return self.data_len
 
 
 class CustomDatasetForTest(Dataset):
     '''Класс для создания тестовых датасетов'''
+    
     def __init__(self, data_info, device: str, transform: object):
         '''Входные параметры:
-        data_info: pd.DataFrame - датафрейм с адресами и именами изображений
+        data_info: pd.DataFrame - датафрейм с адресами изображений и масок
         device: str - имя устройства, на котором будут обрабатываться данные
-        transform: object - список трансформации, которым будут подвергнуты изображения
+        transform: object - список преобразований, которым будут подвергнуты изображения и маски
         Возвращаемые значения:
         объект класса CustomDatasetForTest'''
+        
         # Подаем наш подготовленный датафрейм
         self.data_info = data_info
         # Получаем адреса RGB изображений 
@@ -86,13 +91,15 @@ class CustomDatasetForTest(Dataset):
         # Сохраняем преобразования данных
         self.transform = transform
 
+        
     def __getitem__(self, index):
         '''Входные параметры:
-        img: int - индекс для обращения к элементам датафрейма data_info
+        index: int - индекс для обращения к элементам датафрейма data_info
         Возвращаемые значения:
-        img: torch.Tensor - тензорное представление изображения с размерностью out_shape
-        mask_small: torch.Tensor - тензорное представление маски с исходной размерностью
+        index: int - индекс для обращения к элементам датафрейма data_info
+        tr_image: torch.Tensor - тензорное представление изображения
         image_name: str - имя изображения'''
+        
         image = cv2.imread(self.image_addresses[index])
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype('float')/255.0
         
@@ -103,6 +110,7 @@ class CustomDatasetForTest(Dataset):
     
         return (index, tr_image, image_name)
 
+    
     def __len__(self):
         return self.data_len
         

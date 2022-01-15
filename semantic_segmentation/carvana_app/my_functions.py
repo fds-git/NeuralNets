@@ -9,7 +9,6 @@ def get_data_csv(imgs_path: str = None, masks_path: str = None) -> pd.DataFrame:
     '''Функция получает на вход пути к директориям с изображениями и масками
     и генерирует датафрейм, содержащий имя изображений, их адреса и адреса
     соответствующих им масок
-  
     Входные параметры:
     imgs_path: str - путь к директории с изображениями,
     masks_path: str - путь к директории с масками
@@ -17,7 +16,6 @@ def get_data_csv(imgs_path: str = None, masks_path: str = None) -> pd.DataFrame:
     pd.DataFrame: data - dataframe, содержащий адреса изображений и соответствующих им масок'''
 
     assert (imgs_path != None) & (masks_path != None)
-    # imgs_path or masks_path is equal None
 
     data_img = {}
     data_mask = {}
@@ -43,8 +41,7 @@ def get_data_csv(imgs_path: str = None, masks_path: str = None) -> pd.DataFrame:
 def get_train_test(source_df: pd.DataFrame, separate_feature: str = None, test_size: float = 0.25) -> pd.DataFrame:
     '''Функция разделяет source_df на две части с коэффициентом test_size
     по уникальным значениям separate_feature так, чтобы в новых датафреймах
-    не было строк с одинаковыми значенияти из separate_feature
-
+    не было строк с одинаковыми значениями из separate_feature
     Входные параметры:
     source_df: pd.DataFrame - датафрейм для разделения на train и test
     separate_feature: str - поле, по которому датафрейм будет разделен
@@ -63,7 +60,6 @@ def get_train_test(source_df: pd.DataFrame, separate_feature: str = None, test_s
         data_train, data_valid = train_test_split(source_df, test_size=test_size)
 
     return data_train, data_valid
-
 
 
 def DICE(logits: torch.Tensor, targets: torch.Tensor, treashold: float) -> float:
@@ -109,6 +105,7 @@ def tensor_to_rle(tensor: torch.Tensor) -> str:
     rle = rle.cpu().detach().numpy()
     rle_str = rle_to_string(rle)
     return rle_str
+
     
 def numpy_to_rle(mask_image: np.ndarray) -> str:
     '''Функция принимает одну маску в формате массива numpy, элементы которой
@@ -139,7 +136,8 @@ def rle_to_string(runs: torch.Tensor) -> str:
     Возвращаемые значения:
     rle_str: str - строковое представление последовательности чисел'''
     
-    return ' '.join(str(x) for x in runs)
+    rle_str = ' '.join(str(x) for x in runs)
+    return rle_str
 
 
 def mask_to_rle(mask_addr: str) -> str:
@@ -149,8 +147,7 @@ def mask_to_rle(mask_addr: str) -> str:
     Входные параметры:
     mask_addr: str - адрес маски
     Возвращаемые значения:
-    mask_rle: str - rle представление маски в строком виде
-    '''
+    mask_rle: str - rle представление маски в строком виде'''
     
     mask = Image.open(mask_addr).convert('LA') # преобразование в серый
     mask = np.asarray(mask).astype('float')[:,:,0]

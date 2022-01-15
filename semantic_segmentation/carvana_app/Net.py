@@ -10,24 +10,27 @@ from torch.autograd import Variable
 
 
 class NeuralNetwork(nn.Module):
-    '''Класс для создания работы с нейронной сетью для семантической сегментации Carvana'''
+    '''Класс для работы с нейронной сетью для семантической сегментации Carvana'''
+    
     def __init__(self, model: object):
         '''Конструктор класса
         Входные параметры:
-        model: nn.Module - последовательность слоев или модель, через которую будут проходить данные
-        Возвращаемые значения: 
-        объект класса NeuralNetwork'''
+        model: object - последовательность слоев или модель, через которую будут проходить данные'''
+        
         super(NeuralNetwork, self).__init__()
         self.model = model
 
-    def forward(self, input_data):
-        '''Функция прямого прохода через объкт класса
+        
+    def forward(self, input_data: torch.Tensor) -> torch.Tensor:
+        '''Функция прямого прохода через объект класса
         Входные параметры:
         input_data: torch.Tensor - тензорное представление изображения
         Возвращаемые значения: 
-        input_data: torch.Tensor - тензорное представление маски изображения'''
+        output_data: torch.Tensor - тензорное представление маски изображения'''
+        
         output_data = self.model(input_data)
         return output_data
+    
     
     @staticmethod
     def tensor_to_rle(tensor: torch.Tensor) -> str:
@@ -53,6 +56,7 @@ class NeuralNetwork(nn.Module):
             rle_str = NeuralNetwork.rle_to_string(rle)
             return rle_str
     
+    
     @staticmethod
     def rle_to_string(runs: torch.Tensor) -> str:
         '''Функция преобразует последовательноть чисел в тензоре runs
@@ -61,7 +65,9 @@ class NeuralNetwork(nn.Module):
         runs: torch.Tensor - последовательность чисел в тензорном формате
         Возвращаемые значения:
         rle_str: str - строковое представление последовательности чисел'''
-        return ' '.join(str(x) for x in runs)
+        
+        rle_str = ' '.join(str(x) for x in runs)
+        return rle_str
     
     
     def fit(self, criterion: object, metric: object, optimizer: object, 
@@ -73,8 +79,7 @@ class NeuralNetwork(nn.Module):
         optimizer: object - оптимизатор
         train_data_loader: DataLoader - загрузчик данных для обучения
         valid_data_loader: DataLoader - загрузчик данных для валидации
-        epochs: int - количество эпох обучения
-        
+        epochs: int - количество эпох обучени
         Возвращаемые значения:
         result: dict - словарь со значениями loss при тренировке, валидации и метрики при валидации 
         для каждой эпохи'''
@@ -110,30 +115,11 @@ class NeuralNetwork(nn.Module):
 
             train_loss = np.mean(train_losses)        
             
-            
             if valid_data_loader != None:
-                self.model.eval()
-                valid_metrics = []
-                valid_losses = []
-                for batch_idx, (data, labels_small, labels) in enumerate(valid_data_loader):
-                    data, labels, labels_small = Variable(data), Variable(labels), Variable(labels_small)
-                    outputs = self.model(data)
-                    # loss вычисляется для сжатых масок для правильной валидации (обучались на сжатых)
-                    # чтобы вовремя определить переобучение
-                    loss = criterion(outputs, labels_small)
-                    valid_losses.append(loss.item())
-                    #Преобразуем выход модели к размеру соответствующей маски
-                    outputs = F.interpolate(input=outputs, size=(labels.shape[2], 
-                                                                 labels.shape[3]), mode='bilinear', align_corners=False)
-
-                    # метрика считается для исходных размеров потому что именно так итоговое качество
-                    # определяется алгоритмом kaggle 
-                    metric_value = metric(outputs, labels)
-                    valid_metrics.append(metric_value.item())
-                    
-                valid_loss    = np.mean(valid_losses)
-                valid_metric  = np.mean(valid_metrics)
-                print(f'Epoch {epoch+1}, train loss: {(train_loss):.6f}, valid_loss: {(valid_loss):.6f}, valid_metric: {(valid_metric):.6f}')
+                result = self.valid(criterion, metric, valid_data_loader)
+                valid_loss = result['valid_loss']
+                valid_metric = result['valid_metric']
+                print(f"Epoch {epoch+1}, train loss: {(train_loss):.6f}, valid_loss: {(valid_loss):.6f}, valid_metric: {(valid_metric):.6f}")
             else:
                 print(f'Epoch {epoch+1}, train loss: {(train_loss):.6f}')
                 valid_loss = None
@@ -149,16 +135,17 @@ class NeuralNetwork(nn.Module):
         
         return result
     
+    
     def valid(self, criterion: object, metric: object, valid_data_loader: DataLoader):
         '''Метод для валидации модели
         Входные параметры:
         criterion: object - объект для вычисления loss
         metric: object - объект для вычисления метрики качества
         valid_data_loader: DataLoader - загрузчик данных для валидации
-        
         Возвращаемые значения:
         result: dict - словарь со значениями loss при тренировке, валидации и метрики при валидации 
         для каждой эпохи'''
+        
         self.model.eval()
         valid_metrics = []
         valid_losses = []
@@ -188,7 +175,7 @@ class NeuralNetwork(nn.Module):
     
     def predict(self, test_data_loader: DataLoader, predict_directory: str=None, output_size: tuple=(1280, 1918), 
                 mask_treashold: float=0.5, generate_rle_dataframe: bool=True) -> pd.DataFrame:
-        '''Метод для предсказания масок для набора изображения
+        '''Метод предсказания масок для тестового набора изображений
         Входные параметры:
         test_data_loader: DataLoader - загрузчик данных для предсказания
         predict_directory: str - директория, в которую будут сохраняться сгенерированные маски (если None,
@@ -200,6 +187,7 @@ class NeuralNetwork(nn.Module):
         rle_dataframe: pd.DataFrame - датафрейм с rle представлениями для масок (если 
         generate_rle_dataframe==True)
         Маски в формате .gif для изображений с соответствующими именами, находятся в директории predict_directory'''
+        
         self.model.eval()
         img_names = []
         img_rles = []
@@ -237,16 +225,20 @@ class NeuralNetwork(nn.Module):
             rle_dataframe = pd.DataFrame(list(zip(img_names, img_rles)), columns =['img_name', 'img_rle'])
             return rle_dataframe
     
+    
     def save(self, path_to_save: str='./model.pth'):
         '''Метод сохранения весов модели
         Входные параметры:
         path_to_save: str - директория для сохранения состояния модели'''
+        
         torch.save(self.model.state_dict(), path_to_save)
+    
     
     def trace_save(self, path_to_save: str='./model.pth'):
         '''Метод сохранения модели через torchscript
         Входные параметры:
         path_to_save: str - директория для сохранения модели'''
+        
         example_forward_input = torch.rand(1, 3, 512, 512).to('cpu')
         if next(self.model.parameters()).is_cuda:
             example_forward_input= example_forward_input.to('cuda:0')
@@ -254,10 +246,12 @@ class NeuralNetwork(nn.Module):
         traced_model = torch.jit.trace((self.model).eval(), example_forward_input)
         torch.jit.save(traced_model, path_to_save)
     
+    
     def onnx_save(self, path_to_save: str='./carvana_model.onnx'):
         '''Метод сохранения модели в формате ONNX
         Входные параметры:
         path_to_save: str - директория для сохранения модели'''
+        
         example_forward_input = torch.randn(1, 3, 1024, 1024, requires_grad=True).to('cpu')
         if next(self.model.parameters()).is_cuda:
             example_forward_input= example_forward_input.to('cuda:0')
@@ -273,8 +267,10 @@ class NeuralNetwork(nn.Module):
                           dynamic_axes={'input' : {0 : 'batch_size'},    # Модель будет работать с произвольным
                                         'output' : {0 : 'batch_size'}})  # размером батча
     
+    
     def load(self, path_to_model: str='./model.pth'):
         '''Метод загрузки весов модели
         Входные параметры:
         path_to_model: str - директория с сохраненными весами модели'''
+        
         self.model.load_state_dict(torch.load(path_to_model))
