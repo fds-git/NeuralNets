@@ -1,3 +1,4 @@
-- semantic_segmentation
-. face_recognition
-1. face_landmark
+### В данном репозитории представлены следующие типы проектов в области глубокого обучения: 
+- semantic_segmentation - семантическая сегментация
+- face_recognition - распознавание лиц
+- face_landmark - распознавание ключевых точек на лицах
