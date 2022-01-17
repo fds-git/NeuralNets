@@ -15,9 +15,8 @@ class LandmarkDetector(nn.Module):
         '''Конструктор класса
         Входные параметры:
         device: str - устройство, на котором будет выполняться модель
-        database_path: str - путь до pandas pickle объекта, хранящего данные о пользователях
-        Возвращаемые значения:
-        объект класса MyFaceRecognizer'''
+        face_size: tuple - размер, к которому будут приведены изображения лиц 
+        model_path: str - путь к сохраненным весам модели детектирования ключевых точек'''
 
         super(LandmarkDetector, self).__init__()
 
@@ -28,15 +27,14 @@ class LandmarkDetector(nn.Module):
         self.face_size = face_size
 
 
-
     def preprocessing(self, rgb_frame_numpy: np.ndarray, box: tuple) -> torch.Tensor:
-        '''Метод подготовки изображения лица, ограниченного прямоугольником box на rgb_frame_numpy для подачи в сеть
+        '''Метод подготовки изображения лица, ограниченного прямоугольником box, для подачи в сеть
         Входные параметры:
-        rgb_frame_numpy: np.ndarray - изображение, на котором нужно распознать лицо
-        box: tuple - прямоугольник, ограничивающий лицо на изображении rgb_frame_numpy
+        rgb_frame_numpy: np.ndarray - изображение, для которого нужно детектировать ключевые точки
+        box: tuple - прямоугольник, ограничивающий лицо на изображении
         Возвращаемые значения:
         face_tensor: torch.Tensor - подготовленное для подачи в сеть изображение лица в тензорном формате, 
-        для которого нужно вычислить эмбэддинг'''
+        для которого нужно предсказать координаты ключавых точек'''
 
         left, top, right, bottom = (int(box[0])), (int(box[1])), (int(box[2])), (int(box[3]))
         face_numpy = rgb_frame_numpy[top:bottom, left:right, :]
@@ -48,7 +46,17 @@ class LandmarkDetector(nn.Module):
         face_tensor = face_tensor.float()
         return face_tensor
 
+
     def postprocessing(self, landmarks: torch.Tensor, box: tuple) -> np.ndarray:
+        '''Метод постобработки предсказанных моделью координат ключевых точек (перевод координат
+        из системы box в систему исходного изображения)
+        Входные параметры:
+        landmarks: torch.Tensor - предсказанные моделью координаты ключевых точек
+        box: tuple - прямоугольник, ограничивающий лицо на изображении
+        Возвращаемые значения:
+        landmarks: np.ndarray - координаты ключевых точек, отмасштабированные и смещенные
+        в соответствии с координатами box'''
+
         left, top, right, bottom = (int(box[0])), (int(box[1])), (int(box[2])), (int(box[3]))
         landmarks = landmarks.detach().cpu().numpy()
         landmarks = landmarks.reshape(-1, 2)
