@@ -15,7 +15,7 @@ BLUE_COLOR = (255, 0, 0)
 WHITE_COLOR = (255, 255, 255)
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-face_recognizer = MyFaceRecognizer(device=device)
+face_recognizer = MyFaceRecognizer(device=device, model_path='./mobile_emb128_0.26test_margin2_122000own')
 
 video_session = cv2.VideoCapture(0)
 video_session.set(cv2.CAP_PROP_FPS, FPS)
