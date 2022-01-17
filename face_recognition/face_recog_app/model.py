@@ -14,9 +14,7 @@ class MyFaceRecognizer(nn.Module):
         '''Конструктор класса
         Входные параметры:
         device: str - устройство, на котором будет выполняться модель
-        database_path: str - путь до pandas pickle объекта, хранящего данные о пользователях
-        Возвращаемые значения:
-        объект класса MyFaceRecognizer'''
+        database_path: str - путь до pandas pickle объекта, хранящего данные о пользователях'''
 
         super(MyFaceRecognizer, self).__init__()
 
@@ -27,7 +25,7 @@ class MyFaceRecognizer(nn.Module):
 
         if database_path != None:
             try:
-                # pickle сохраняет типы данных в колонках (в данном случае centroids - ndarray-объекты)
+                # pickle сохраняет в том числе типы данных в колонках (в данном случае centroids - ndarray-объекты)
                 self.database = pd.read_pickle(database_path)
                 # Получаем из колонки 'centroid' датафрейма двумерный массив, содержащий координаты всех центроид,
                 # а затем преобразуем его в двумерный тензор для более быстрой обработки
