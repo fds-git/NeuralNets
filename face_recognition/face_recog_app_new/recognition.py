@@ -17,7 +17,7 @@ WHITE_COLOR = (255, 255, 255)
 DISTANCE_TREASHOLD = 1.0 # Пороговое расстояние между эмбэддингами лиц
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-face_recognizer = MyFaceRecognizer(device=device, database_path='database.pkl')
+face_recognizer = MyFaceRecognizer(device=device, database_path='database_old.pkl')
 video_session = cv2.VideoCapture(0)
 
 video_session.set(cv2.CAP_PROP_FPS, FPS)
