@@ -2,3 +2,4 @@
 - semantic_segmentation - семантическая сегментация
 - face_recognition - распознавание лиц
 - face_landmark - детектирование ключевых точек на лицах
+- age_gender_classifier - определение пола и возраста
